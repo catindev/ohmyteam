@@ -26,6 +26,16 @@ export default function gameEventsReducer(state, action) {
         })),
       };
 
+    case "TOGGLE_TASK": {
+      const { id } = action.payload;
+      return {
+        ...state,
+        characters: state.characters.map((c) =>
+          c.id === id ? { ...c, task: !c.task } : c
+        ),
+      };
+    }
+
     default:
       return state;
   }

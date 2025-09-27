@@ -70,8 +70,19 @@ export default function Game() {
         <ul>
           {state.characters.map((character) => (
             <li key={character.id}>
-              {character.name} — stamina {character.stamina}{" "}
-              {character.active ? "" : "(не работает)"}
+              {character.name}{" "}
+              <button
+                onClick={() =>
+                  dispatch({
+                    type: "TOGGLE_TASK",
+                    payload: { id: character.id },
+                  })
+                }
+              >
+                {character.task ? "Отдыхать" : "Работать"}
+              </button>{" "}
+              stamina {character.stamina}{" "}
+              {character.task ? "" : "(не работает)"}
             </li>
           ))}
         </ul>

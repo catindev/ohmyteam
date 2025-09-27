@@ -1,7 +1,7 @@
 const MINUTE_MS = 60 * 1000;
 
 export default {
-  pause: false,
+  pause: true,
   settings: { tick: 100 }, // мс реального тика
   ticks: 0,
 
@@ -11,11 +11,10 @@ export default {
   },
 
   characters: [
-    { id: "c1", name: "Worker 1", stamina: 100, active: true },
-    { id: "c2", name: "Worker 2", stamina: 100, active: true },
+    { id: "c1", name: "Alice", stamina: 100, task: false, exhaustHours: 8 },
+    { id: "c2", name: "Bob", stamina: 100, task: false, exhaustHours: 4 },
   ],
 
-  // временные триггеры: «каждую минуту»
   timeTriggers: [
     {
       id: "perMinute",

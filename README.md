@@ -1,12 +1,54 @@
-# React + Vite
+# The Game
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## v0.1 / 27.09.2025
 
-Currently, two official plugins are available:
+- Логика стамины вынесена из минутного обработчика в отдельный модуль stamina.js
+- Появилась возможность задавать индивидуальное время полного выматывания (exhaustHours) на персонажа; расчёт учитывает квартиль стамины
+- В UI можно вручную переводить персонажа в режим работы/отдыха через кнопку (меняется task)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## v0
 
-## Expanding the ESLint configuration
+### Архитектура и цикл
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Приложение на React + Vite; корень рендерит <Game /> через StrictMode.
+- В Game.jsx запускается игровой цикл (через setInterval, хранится в intervalRef), который диспатчит событие TICK в редьюсер.
+- Все изменения состояния проходят через один редьюсер gameEventsReducer (action’ы: TICK, PAUSE, RESET). Это задаёт чистую, предсказуемую модель обновлений.
+
+### Игровое время и масштабирование
+
+- В tick.js заложено соотношение времени: 1 реальная секунда = 60 игровых секунд. Конкретная прибавка за тик: addMs = settings.tick \* 60. То есть скорость игры контролируется одним числом settings.tick (мс).
+- Часы игры хранятся как startEpochMs (UTC) + смещение gameMs. Текущее «игровое время суток» берётся суммой этих двух значений.
+- Триггеры времени (scheduler)
+
+Есть массив timeTriggers, где у каждого триггера: everyMs, nextAtMs, handler (имя обработчика). Сейчас настроен триггер на каждую минуту onMinuteTick (каждый игровой час).
+
+На каждом TICK игра:
+
+1. продвигает gameMs
+2. проходится по всем триггерам
+3. для каждого вычисляет, не пришло ли время выстрелить, и сколько раз нужно отработать (times), если за один тик проскочило несколько периодов вызывает соответствующий обработчик из timeHandlerRegistry
+4. сдвигает nextAtMs.
+
+Это даёт детерминированные минутные и часовые шаги, независимые от частоты рендера.
+
+### Реестр обработчиков
+
+Обработчики вынесены в чистые функции в handlers.js в котором реестр timeHandlerRegistry мапит строковое имя на функцию. Сейчас реализован onMinuteTick.
+
+onMinuteTick за каждый «шаг минуты» уменьшает выносливость (stamina) активных персонажей на случайную величину, отключая персонажа при истощении, и формирует «инциденты» (события) в лог. Обработчик корректно поддерживает times > 1.
+
+### Состояние игры (state)
+
+- pause, settings.tick, ticks,
+- clock: { startEpochMs, gameMs },
+- characters: [{ id, name, stamina, active }, …],
+- timeTriggers (описано выше),
+- incidents (массив событий для UI/логов) и incidentsVersion (монотонный счётчик для эффекта/ключей).
+
+Событие RESET сбрасывает стейт: таймер, триггеры, инциденты и базовые параметры персонажей (stamina=100, active=true) и игра начинается заново.
+
+### Утилиты и UI
+
+Утилиты форматирования времени (formatGameTime, formatGameDateUTC) для отображения игровых часов в UTC.
+
+В интерфейсе (стили и структура) предусмотрены блоки для часов/дня, управления (паузa/сброс/скорость) и списка персонажей со статусами.
