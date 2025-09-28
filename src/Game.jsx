@@ -1,47 +1,37 @@
-import { useEffect, useReducer, useRef, useMemo, useCallback } from "react";
+import { useReducer, useCallback } from "react";
 import initialState from "./logic/state";
-import gameEventsReducer from "./logic/events";
-import { formatGameTime } from "./logic/utils";
+import gameEventsReducer from "./logic/eventsReducer";
 import useGameLoop from "./hooks/useGameLoop";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
+import useIncidentLogger from "./hooks/useIncidentLogger";
+import useGameClock from "./hooks/useGameClock";
 
 export default function Game() {
   const [state, dispatch] = useReducer(gameEventsReducer, initialState);
 
-  // Мемоизируем функцию тика для стабильности
+  // мемоизируем тик для стабильности
   const handleTick = useCallback(() => {
     dispatch({ type: "TICK" });
   }, []);
 
-  // Используем хук игрового цикла
+  // хук игрового цикла
   useGameLoop(state.pause, state.settings.tick, handleTick);
 
-  // логируем ТОЛЬКО новые инциденты
-  const lastSeenRef = useRef(0);
-  useEffect(() => {
-    if (state.incidentsVersion > lastSeenRef.current) {
-      const newCount = state.incidentsVersion - lastSeenRef.current;
-      const slice = state.incidents.slice(-newCount);
-      slice.forEach((ev) => console.log(ev.message));
-      lastSeenRef.current = state.incidentsVersion;
-    }
-  }, [state.incidentsVersion, state.incidents]);
+  // лог новых инцидентов в консоли браузера
+  useIncidentLogger(state.incidents, state.incidentsVersion);
 
-  const gameEpochMs = state.clock.startEpochMs + state.clock.gameMs;
-  const daysPassed = Math.floor(state.clock.gameMs / DAY_MS);
-  const gameDateString = useMemo(
-    () => formatGameTime(gameEpochMs),
-    [gameEpochMs]
+  // игровое время
+  const { currentGameTime, daysPassed, formatIncidentTime } = useGameClock(
+    state.clock
   );
 
   return (
     <main className="box">
       <h1>TheGame</h1>
-      <div className="line">Game loops: {state.ticks}</div>
-      <div className="line">Game time: {gameDateString}</div>
+      <div className="line">Loops: {state.ticks}</div>
+      <div className="line">Current time: {currentGameTime}</div>
       <div className="line">Days passed: {daysPassed}</div>
       <div className="line">Budget: {state.budget}</div>
+
       <div className="controls">
         <button onClick={() => dispatch({ type: "PAUSE" })}>
           {state.pause ? "▶️ Старт" : "⏸️ Пауза"}
@@ -53,6 +43,7 @@ export default function Game() {
           🔄 Сбросить
         </button>
       </div>
+
       <div className="characters">
         <h2>Characters</h2>
         <ul>
@@ -70,9 +61,22 @@ export default function Game() {
                 {character.task ? "Отдыхать" : "Работать"}
               </button>{" "}
               stamina {character.stamina}{" "}
-              {character.task ? "" : "(не работает)"}
             </li>
           ))}
+        </ul>
+      </div>
+
+      <div>
+        <h2>Игровые события {state.incidentsVersion}</h2>
+        <ul className="line">
+          {state.incidents.length > 0 &&
+            state.incidents.map((incident) => (
+              <li key={incident.id}>
+                {formatIncidentTime(incident.atMs, state.clock.startEpochMs)}
+                {" - "}
+                {incident.message}
+              </li>
+            ))}
         </ul>
       </div>
     </main>

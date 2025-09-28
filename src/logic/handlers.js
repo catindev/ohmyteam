@@ -1,12 +1,18 @@
 import { applyStamina } from "./stamina";
 import { applyPayroll } from "./payroll";
 
-// Ежеминутный обработчик игрового времени
-export function onEachGameMinute(state, { times }) {
+/* Обработчики игрового времени */
+
+function onEachGameMinute(state, { times }) {
   let next = state;
-  // 1) Стамина у персонажей
+  // Стамина у персонажей
   next = applyStamina(next, { times });
-  // 2) Выплата зарплаты
+  return next;
+}
+
+function onEachGameHour(state, { times }) {
+  let next = state;
+  // Выплата зарплаты
   next = applyPayroll(next);
   return next;
 }
@@ -14,4 +20,5 @@ export function onEachGameMinute(state, { times }) {
 // Реестр обработчиков
 export const timeHandlerRegistry = {
   onEachGameMinute,
+  onEachGameHour,
 };

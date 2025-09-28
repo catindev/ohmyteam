@@ -1,4 +1,5 @@
 const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
 
 export default {
   pause: true,
@@ -20,7 +21,7 @@ export default {
       stamina: 100,
       task: false,
       exhaustHours: 8,
-      salary: 15,
+      salary: 800,
     },
     {
       id: "c2",
@@ -28,7 +29,7 @@ export default {
       stamina: 100,
       task: false,
       exhaustHours: 4,
-      salary: 50,
+      salary: 1500,
     },
   ],
 
@@ -40,9 +41,15 @@ export default {
       nextAtMs: MINUTE_MS,
       handler: "onEachGameMinute",
     },
+    {
+      id: "perHour",
+      everyMs: HOUR_MS,
+      nextAtMs: HOUR_MS,
+      handler: "onEachGameHour",
+    },
   ],
 
-  // индикатор инцидентов (для UI/логов)
-  incidents: [], // элементы: { id, type, message, atMs, payload? }
-  incidentsVersion: 0, // монотонный счётчик для эффекта
+  // список инцидентов (для логов)
+  incidents: [], // { id, type, message, atMs, payload? }
+  incidentsVersion: 0,
 };

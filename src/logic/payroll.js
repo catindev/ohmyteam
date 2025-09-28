@@ -22,7 +22,7 @@ export function applyPayroll(state) {
   };
 
   // необязательный, но полезный лог
-  const message = `Payroll: -${stepCost}; бюджет → ${nextBudget}`;
+  const message = `Выплата зарплаты: -${stepCost}; Бюджет = ${nextBudget}`;
 
   nextState = appendIncident(nextState, {
     type: "payroll",
