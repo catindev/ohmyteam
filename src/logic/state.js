@@ -10,17 +10,35 @@ export default {
     gameMs: 0,
   },
 
+  budget: 50_000,
+
+  // Персонажи
   characters: [
-    { id: "c1", name: "Alice", stamina: 100, task: false, exhaustHours: 8 },
-    { id: "c2", name: "Bob", stamina: 100, task: false, exhaustHours: 4 },
+    {
+      id: "c1",
+      name: "Alice",
+      stamina: 100,
+      task: false,
+      exhaustHours: 8,
+      salary: 15,
+    },
+    {
+      id: "c2",
+      name: "Bob",
+      stamina: 100,
+      task: false,
+      exhaustHours: 4,
+      salary: 50,
+    },
   ],
 
+  // Реестр триггеров
   timeTriggers: [
     {
       id: "perMinute",
       everyMs: MINUTE_MS,
       nextAtMs: MINUTE_MS,
-      handler: "onMinuteTick",
+      handler: "onEachGameMinute",
     },
   ],
 

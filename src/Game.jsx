@@ -52,6 +52,7 @@ export default function Game() {
       <div className="line">Game loops: {state.ticks}</div>
       <div className="line">Game time: {gameDateString}</div>
       <div className="line">Days passed: {daysPassed}</div>
+      <div className="line">Budget: {state.budget}</div>
 
       <div className="controls">
         <button onClick={() => dispatch({ type: "PAUSE" })}>

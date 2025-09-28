@@ -1,36 +1,17 @@
 import { applyStamina } from "./stamina";
+import { applyPayroll } from "./payroll";
 
-/**
- * Минутный обработчик игрового времени
- */
-export function onMinuteTick(state, { times }) {
-  let next = { ...state };
-
-  // Единая точка изменения стамины вынесена в модуль stamina
-  const { characters, incidents } = applyStamina(next.characters, {
-    times,
-    nowMs: next.clock.nowMs,
-  });
-
-  next.characters = characters;
-
-  if (incidents.length) {
-    next.incidents = [...(next.incidents || []), ...incidents];
-    next.incidentsVersion = (next.incidentsVersion || 0) + incidents.length;
-  }
-
+// Ежеминутный обработчик игрового времени
+export function onEachGameMinute(state, { times }) {
+  let next = state;
+  // 1) Стамина у персонажей
+  next = applyStamina(next, { times });
+  // 2) Выплата зарплаты
+  next = applyPayroll(next);
   return next;
 }
 
-/**
- * Регистр обработчиков по именам — ожидается tick.js.
- * tick.js импортирует именно `timeHandlerRegistry`.
- */
+// Реестр обработчиков
 export const timeHandlerRegistry = {
-  onMinuteTick,
-};
-
-// (опционально) совместимость, если где-то в коде использовалось `handlers`
-export const handlers = {
-  onMinuteTick,
+  onEachGameMinute,
 };
