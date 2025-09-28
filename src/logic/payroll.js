@@ -4,7 +4,8 @@
 
 export function applyPayroll(state) {
   const characters = state.characters ?? [];
-  if (characters.length === 0) return;
+  if (characters.length === 0) return state;
+
   const stepCost = characters.reduce(
     (sum, ch) => sum + (Number(ch?.salary) || 0),
     0
@@ -21,9 +22,11 @@ export function applyPayroll(state) {
   };
 
   // необязательный, но полезный лог
+  const message = `Payroll: -${stepCost}; бюджет → ${nextBudget}`;
+
   nextState = appendIncident(nextState, {
     type: "payroll",
-    msg: `Payroll: -${stepCost}; бюджет → ${nextBudget}`,
+    message: message,
     amount: -stepCost,
     count: characters.length,
   });

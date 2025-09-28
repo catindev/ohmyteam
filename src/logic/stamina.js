@@ -1,5 +1,5 @@
 // Публичный API:
-// - applyStaminaToState(state, { times }) -> nextState
+// - applyStamina(state, { times }) -> nextState
 // - getQuartile(stamina) -> 1..4
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
@@ -50,7 +50,7 @@ export function applyStamina(state, { times }) {
   };
 
   const incidents = [];
-  const nowMs = next.clock?.nowMs ?? 0;
+  const nowMs = (state.clock?.startEpochMs ?? 0) + (state.clock?.gameMs ?? 0);
 
   // поминутные шаги — квартиль может меняться по ходу
   for (let step = 0; step < times; step++) {
@@ -87,7 +87,7 @@ export function applyStamina(state, { times }) {
             ts: nowMs,
             type: "exhausted",
             characterId: character.id,
-            message: `${ch.name} вымотан(а) до нуля.`,
+            message: `${character.name} вымотан(а) до нуля.`,
           });
         }
         if (!character.task && val === 100 && prev < 100) {
@@ -95,7 +95,7 @@ export function applyStamina(state, { times }) {
             ts: nowMs,
             type: "fully_restored",
             characterId: character.id,
-            message: `${ch.name} полностью восстановил(а) силы.`,
+            message: `${character.name} полностью восстановил(а) силы.`,
           });
         }
       }

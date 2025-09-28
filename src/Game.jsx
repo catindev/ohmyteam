@@ -1,32 +1,21 @@
-import { useEffect, useReducer, useRef, useMemo } from "react";
+import { useEffect, useReducer, useRef, useMemo, useCallback } from "react";
 import initialState from "./logic/state";
 import gameEventsReducer from "./logic/events";
 import { formatGameTime } from "./logic/utils";
+import useGameLoop from "./hooks/useGameLoop";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export default function Game() {
   const [state, dispatch] = useReducer(gameEventsReducer, initialState);
-  const intervalRef = useRef(null);
 
-  // игровой цикл
-  useEffect(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    if (state.pause) return;
-    intervalRef.current = setInterval(
-      () => dispatch({ type: "TICK" }),
-      state.settings.tick
-    );
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [state.pause, state.settings.tick]);
+  // Мемоизируем функцию тика для стабильности
+  const handleTick = useCallback(() => {
+    dispatch({ type: "TICK" });
+  }, []);
+
+  // Используем хук игрового цикла
+  useGameLoop(state.pause, state.settings.tick, handleTick);
 
   // логируем ТОЛЬКО новые инциденты
   const lastSeenRef = useRef(0);
@@ -53,7 +42,6 @@ export default function Game() {
       <div className="line">Game time: {gameDateString}</div>
       <div className="line">Days passed: {daysPassed}</div>
       <div className="line">Budget: {state.budget}</div>
-
       <div className="controls">
         <button onClick={() => dispatch({ type: "PAUSE" })}>
           {state.pause ? "▶️ Старт" : "⏸️ Пауза"}
@@ -65,7 +53,6 @@ export default function Game() {
           🔄 Сбросить
         </button>
       </div>
-
       <div className="characters">
         <h2>Characters</h2>
         <ul>
